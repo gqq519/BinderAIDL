@@ -1,5 +1,6 @@
 package com.gqq.binderaidl;
 
+import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 

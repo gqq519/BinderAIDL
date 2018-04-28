@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,24 +39,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        bindUserService();
+
+    }
+
+    private void bindUserService() {
         Intent intent = new Intent();
         intent.setAction("com.gqq.binderaidl.IUserManager");
         // Android 5.0 以后必需显式启动,参考：https://blog.csdn.net/vrix/article/details/45289207
         intent.setPackage("com.gqq.binderaidl");
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
-
     }
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             userManager = IUserManager.Stub.asInterface(service);
+            //  设置死亡代理
+            try {
+                service.linkToDeath(deathRecipient, 0);
+            } catch (RemoteException e) {
+                Log.i("TAG", "RemoteException");
+                e.printStackTrace();
+            }
             Toast.makeText(MainActivity.this, "onServiceConnected", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             userManager = null;
+        }
+    };
+
+    private IBinder.DeathRecipient deathRecipient = new IBinder.DeathRecipient() {
+        @Override
+        public void binderDied() {
+            if (userManager == null) {
+                return;
+            }
+            Log.i("TAG", "binderDied");
+            userManager.asBinder().unlinkToDeath(deathRecipient, 0);
+            userManager = null;
+            // 重新绑定远程Service
+            bindUserService();
         }
     };
 }
