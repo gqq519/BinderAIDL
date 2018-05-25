@@ -3,6 +3,7 @@ package com.gqq.binderaidl;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -17,7 +18,9 @@ import java.util.List;
 public class UserService extends Service {
 
     private List<User> users;
-    private List<IOnNewUserArrivedListener> listeners = new ArrayList<>();
+
+    // 他并不是一个list，并不能像操作list一样
+    private RemoteCallbackList<IOnNewUserArrivedListener> listeners = new RemoteCallbackList<>();
     private boolean isServiceDestoryed = false;
 
     @Nullable
@@ -42,10 +45,14 @@ public class UserService extends Service {
 
     private void onNewUserArrived(User user) throws RemoteException {
         users.add(user);
-        for (int i = 0; i < listeners.size(); i++) {
-            IOnNewUserArrivedListener onNewUserArrivedListener = listeners.get(i);
-            onNewUserArrivedListener.onNewUserArrived(user);
+        int size = listeners.beginBroadcast();
+        for (int i = 0; i < size; i++) {
+            IOnNewUserArrivedListener onNewUserArrivedListener = listeners.getBroadcastItem(i);
+            if (onNewUserArrivedListener != null) {
+                onNewUserArrivedListener.onNewUserArrived(user);
+            }
         }
+        listeners.finishBroadcast();
     }
 
     public class UserServiceImpl extends IUserManager.Stub {
@@ -68,22 +75,21 @@ public class UserService extends Service {
 
         @Override
         public void registerListener(IOnNewUserArrivedListener listener) throws RemoteException {
+            listeners.register(listener);
 
-            if (!listeners.contains(listener)) {
-                listeners.add(listener);
-            } else {
-                Log.i("TAG", "listener already exists");
-            }
+            // 注意：
+
+            int i = listeners.beginBroadcast();
+            listeners.finishBroadcast();
+            Log.i("TAG", "registerListener listener size:"+ i);
         }
 
         @Override
         public void unregisterListener(IOnNewUserArrivedListener listener) throws RemoteException {
-            // 删除注册的监听失败了
-            if (listeners.contains(listener)) {
-                listeners.remove(listener);
-            } else {
-                Log.i("TAG", "not found");
-            }
+            listeners.unregister(listener);
+            int i = listeners.beginBroadcast();
+            listeners.finishBroadcast();
+            Log.i("TAG", "unregisterListener listener size:"+ i);
         }
     }
 
@@ -98,7 +104,7 @@ public class UserService extends Service {
                     e.printStackTrace();
                 }
                 int userId = users.size() + 1;
-                User user = new User(userId, "new User:"+userId);
+                User user = new User(userId, "new User:" + userId);
                 try {
                     onNewUserArrived(user);
                 } catch (RemoteException e) {
