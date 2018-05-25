@@ -8,7 +8,7 @@ public interface IUserManager extends android.os.IInterface {
     /**
      * Local-side IPC implementation stub class.
      */
-    public static abstract class Stub extends android.os.Binder implements com.gqq.binderaidl.IUserManager {
+    public static abstract class Stub extends android.os.Binder implements IUserManager {
         private static final String DESCRIPTOR = "com.gqq.binderaidl.IUserManager";
 
         /**
@@ -22,15 +22,15 @@ public interface IUserManager extends android.os.IInterface {
          * Cast an IBinder object into an com.gqq.binderaidl.IUserManager interface,
          * generating a proxy if needed.
          */
-        public static com.gqq.binderaidl.IUserManager asInterface(android.os.IBinder obj) {
+        public static IUserManager asInterface(android.os.IBinder obj) {
             if ((obj == null)) {
                 return null;
             }
             android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (((iin != null) && (iin instanceof com.gqq.binderaidl.IUserManager))) {
-                return ((com.gqq.binderaidl.IUserManager) iin);
+            if (((iin != null) && (iin instanceof IUserManager))) {
+                return ((IUserManager) iin);
             }
-            return new com.gqq.binderaidl.IUserManager.Stub.Proxy(obj);
+            return new Proxy(obj);
         }
 
         @Override
@@ -65,9 +65,9 @@ public interface IUserManager extends android.os.IInterface {
                 }
                 case TRANSACTION_addUser: {
                     data.enforceInterface(DESCRIPTOR);
-                    com.gqq.binderaidl.User _arg0;
+                    User _arg0;
                     if ((0 != data.readInt())) {
-                        _arg0 = com.gqq.binderaidl.User.CREATOR.createFromParcel(data);
+                        _arg0 = User.CREATOR.createFromParcel(data);
                     } else {
                         _arg0 = null;
                     }
@@ -82,11 +82,27 @@ public interface IUserManager extends android.os.IInterface {
                     reply.writeTypedList(_result);
                     return true;
                 }
+                case TRANSACTION_registerListener: {
+                    data.enforceInterface(DESCRIPTOR);
+                    com.gqq.binderaidl.IOnNewUserArrivedListener _arg0;
+                    _arg0 = com.gqq.binderaidl.IOnNewUserArrivedListener.Stub.asInterface(data.readStrongBinder());
+                    this.registerListener(_arg0);
+                    reply.writeNoException();
+                    return true;
+                }
+                case TRANSACTION_unregisterListener: {
+                    data.enforceInterface(DESCRIPTOR);
+                    com.gqq.binderaidl.IOnNewUserArrivedListener _arg0;
+                    _arg0 = com.gqq.binderaidl.IOnNewUserArrivedListener.Stub.asInterface(data.readStrongBinder());
+                    this.unregisterListener(_arg0);
+                    reply.writeNoException();
+                    return true;
+                }
             }
             return super.onTransact(code, data, reply, flags);
         }
 
-        private static class Proxy implements com.gqq.binderaidl.IUserManager {
+        private static class Proxy implements IUserManager {
             private android.os.IBinder mRemote;
 
             Proxy(android.os.IBinder remote) {
@@ -127,7 +143,7 @@ public interface IUserManager extends android.os.IInterface {
             }
 
             @Override
-            public void addUser(com.gqq.binderaidl.User user) throws android.os.RemoteException {
+            public void addUser(User user) throws android.os.RemoteException {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
                 try {
@@ -155,18 +171,50 @@ public interface IUserManager extends android.os.IInterface {
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_getUserList, _data, _reply, 0);
                     _reply.readException();
-                    _result = _reply.createTypedArrayList(com.gqq.binderaidl.User.CREATOR);
+                    _result = _reply.createTypedArrayList(User.CREATOR);
                 } finally {
                     _reply.recycle();
                     _data.recycle();
                 }
                 return _result;
             }
+
+            @Override
+            public void registerListener(com.gqq.binderaidl.IOnNewUserArrivedListener listener) throws android.os.RemoteException {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeStrongBinder((((listener != null)) ? (listener.asBinder()) : (null)));
+                    mRemote.transact(Stub.TRANSACTION_registerListener, _data, _reply, 0);
+                    _reply.readException();
+                } finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
+
+            @Override
+            public void unregisterListener(com.gqq.binderaidl.IOnNewUserArrivedListener listener) throws android.os.RemoteException {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeStrongBinder((((listener != null)) ? (listener.asBinder()) : (null)));
+                    mRemote.transact(Stub.TRANSACTION_unregisterListener, _data, _reply, 0);
+                    _reply.readException();
+                } finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+            }
         }
 
         static final int TRANSACTION_basicTypes = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_addUser = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
         static final int TRANSACTION_getUserList = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
+        static final int TRANSACTION_registerListener = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
+        static final int TRANSACTION_unregisterListener = (android.os.IBinder.FIRST_CALL_TRANSACTION + 4);
     }
 
     /**
@@ -175,7 +223,11 @@ public interface IUserManager extends android.os.IInterface {
      */
     public void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString) throws android.os.RemoteException;
 
-    public void addUser(com.gqq.binderaidl.User user) throws android.os.RemoteException;
+    public void addUser(User user) throws android.os.RemoteException;
 
     public java.util.List<User> getUserList() throws android.os.RemoteException;
+
+    public void registerListener(com.gqq.binderaidl.IOnNewUserArrivedListener listener) throws android.os.RemoteException;
+
+    public void unregisterListener(com.gqq.binderaidl.IOnNewUserArrivedListener listener) throws android.os.RemoteException;
 }

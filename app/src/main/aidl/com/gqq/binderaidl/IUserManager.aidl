@@ -3,6 +3,7 @@ package com.gqq.binderaidl;
 
 // Declare any non-default types here with import statements
 import com.gqq.binderaidl.User;
+import com.gqq.binderaidl.IOnNewUserArrivedListener;
 
 interface IUserManager {
     /**
@@ -14,4 +15,6 @@ interface IUserManager {
 
     void addUser(in User user);
     List<User> getUserList();
+    void registerListener(IOnNewUserArrivedListener listener);
+    void unregisterListener(IOnNewUserArrivedListener listener);
 }
