@@ -4,6 +4,8 @@
  */
 package com.gqq.binderaidl;
 
+import android.content.pm.PackageManager;
+
 public interface IUserManager extends android.os.IInterface {
     /**
      * Local-side IPC implementation stub class.

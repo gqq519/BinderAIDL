@@ -2,7 +2,9 @@ package com.gqq.binderaidl;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
+import android.os.Parcel;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
@@ -26,6 +28,12 @@ public class UserService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+//        第一种
+//        int check = checkCallingOrSelfPermission("com.gqq.binderaidl.permission.ACCESS_USER_SERVICE");
+//        Log.i("TAG", "onBind check = "+check);
+//        if (check == PackageManager.PERMISSION_DENIED) {
+//            return null;
+//        }
         users = new ArrayList<>();
         return new UserServiceImpl();
     }
@@ -57,6 +65,29 @@ public class UserService extends Service {
 
     public class UserServiceImpl extends IUserManager.Stub {
 
+        // 第二种
+        @Override
+        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+            // 权限验证
+            int check = checkCallingOrSelfPermission("com.gqq.binderaidl.permission.ACCESS_USER_SERVICE");
+            if(check == PackageManager.PERMISSION_DENIED){
+                Log.i("TAG", "Binder 权限验证失败");
+                return false;
+            }
+            // 包名验证
+            String packageName=null;
+            String[] packages = getPackageManager().getPackagesForUid(getCallingUid());
+            if(packages!=null && packages.length>0){
+                packageName = packages[0];
+            }
+            if(!packageName.startsWith("com.gqq")){
+                Log.i("TAG", "包名验证失败");
+                return false;
+
+            }
+            return super.onTransact(code, data, reply, flags);
+        }
+
         @Override
         public void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString) throws RemoteException {
 
@@ -81,7 +112,7 @@ public class UserService extends Service {
 
             int i = listeners.beginBroadcast();
             listeners.finishBroadcast();
-            Log.i("TAG", "registerListener listener size:"+ i);
+            Log.i("TAG", "registerListener listener size:" + i);
         }
 
         @Override
@@ -89,7 +120,7 @@ public class UserService extends Service {
             listeners.unregister(listener);
             int i = listeners.beginBroadcast();
             listeners.finishBroadcast();
-            Log.i("TAG", "unregisterListener listener size:"+ i);
+            Log.i("TAG", "unregisterListener listener size:" + i);
         }
     }
 
